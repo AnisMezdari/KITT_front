@@ -39,6 +39,7 @@ body {
   font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
   background-repeat: no-repeat;
   background-attachment: fixed;
+    color : black
 }
 .app-root {
   position: relative;

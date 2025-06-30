@@ -1,110 +1,85 @@
 <template>
-  <div class="home-layout">
-    <SidebarNav :isDark="isDark" @toggle-theme="toggleTheme" />
+  <div class="global-layout">
+    <Header />
+    <div class="content-row">
+      <SidebarNav
+        :isDark="isDark"
+        :selected="selected"
+        @toggle-theme="toggleTheme"
+        @navigate="handleNavigate"
+        class="sidebar"
+      />
     <main class="main-content">
-      <!-- Header -->
-      <header class="header">
-        <div class="header-left">
-          <span class="section-title">Simulation</span>
-          <h1>
-            Welcome back, <strong>Tony STARK</strong>
-          </h1>
-        </div>
-        <div class="header-right">
-          <input class="search" placeholder="Search" />
-          <span class="notif">🔔</span>
-          <span class="profile">👤</span>
-        </div>
-      </header>
-      <div class="date">{{ today }}</div>
-
-      <!-- Simulation module -->
-      <SimulationModule />
-    </main>
+        <LoadingSimulation
+          v-if="selected === 'simulation' && simulationStep > 4"
+        />
+        <ConfigurationSimulation
+          v-else-if="selected === 'simulation'"
+          :step="simulationStep"
+          @next="simulationStep++"
+          @prev="simulationStep--"
+        />
+        <slot v-else />
+      </main>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import SidebarNav from '../components/SidebarNav.vue'
-import SimulationModule from '../components/SimulationModule.vue'
+import Header from '../components/Header.vue'
+import ConfigurationSimulation from '../components/ConfigurationSimulation.vue'
+import LoadingSimulation from '../components/LoadingSimulation.vue'
 
-const today = new Date().toLocaleDateString('en-GB', {
-  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-})
+
 const isDark = ref(false)
-function toggleTheme() {
-  isDark.value = !isDark.value
-}
+const selected = ref('dashboard')
+function handleNavigate(page) { selected.value = page }
+function toggleTheme() { isDark.value = !isDark.value }
 const updateBodyClass = () => {
   document.body.classList.toggle('dark-bg', isDark.value)
   document.body.classList.toggle('light-bg', !isDark.value)
 }
 onMounted(updateBodyClass)
 watch(isDark, updateBodyClass)
+const simulationStep = ref(1)
 </script>
 
 <style scoped>
-.home-layout {
+.global-layout {
   min-height: 100vh;
-  width: 100vw;
+  background: #f1f3f6;
+}
+.content-row {
   display: flex;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  flex-direction: row;
+  align-items: flex-start;
+  margin-top: -65px;
+  padding: 0 24px 24px 0px;
+}
+.sidebar {
+  flex-shrink: 0;
+  margin-top: 0;
+  margin-right: 24px;
 }
 .main-content {
   flex: 1;
-  padding: 2.5rem 2.5rem 2.5rem 2.5rem;
-  display: flex;
-  flex-direction: column;
+  min-height: 600px;
+  background: #f7f8fa;
+  border-radius: 20px;
+  box-shadow: none;
+  padding: 32px;
 }
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.5rem;
-}
-.header-left .section-title {
-  font-size: 1rem;
-  color: #888;
-  margin-bottom: 0.2rem;
-  display: block;
-}
-.header-left h1 {
-  font-size: 2rem;
-  font-weight: 400;
-  margin: 0;
-   color: #888;
-}
-.header-left strong {
-  font-weight: 700;
-}
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1.2rem;
-}
-.search {
-  border: 1px solid #e3e8ee;
-  border-radius: 1.2rem;
-  padding: 0.5rem 1.2rem;
-  font-size: 1rem;
-  outline: none;
-  background: #f4f7fa;
-}
-.notif {
-  font-size: 1.5rem;
-  cursor: pointer;
-}
-.profile {
-  font-size: 1.7rem;
-  cursor: pointer;
-}
-.date {
-  text-align: right;
-  color: #888;
-  font-size: 1.05rem;
-  margin-bottom: 2.2rem;
+@media (max-width: 900px) {
+  .content-row {
+    flex-direction: column;
+    margin-top: 0;
+    padding: 0 8px;
+  }
+  .main-content {
+    margin-top: 24px;
+    padding: 16px;
+  }
 }
 </style>
