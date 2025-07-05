@@ -58,8 +58,8 @@ onMounted(() => {
 
 <style scoped>
 .loading-simu {
-  width: 100%;
-  min-height: 500px;
+  width: 90%;
+  
   display: flex;
   flex-direction: column;
   align-items: center;

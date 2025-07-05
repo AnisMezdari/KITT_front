@@ -65,11 +65,11 @@ const simulationStep = ref(1)
 }
 .main-content {
   flex: 1;
-  min-height: 600px;
+ 
   background: #f7f8fa;
   border-radius: 20px;
   box-shadow: none;
-  padding: 32px;
+ 
 }
 @media (max-width: 900px) {
   .content-row {
