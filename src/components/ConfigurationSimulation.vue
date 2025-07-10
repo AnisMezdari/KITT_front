@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 const props = defineProps({
   step: { type: Number, default: 1 }
 })
-const selected = ref('non')
+const selected = ref('')
 
 const stepData = computed(() => {
   if (props.step === 1) {
@@ -81,37 +81,43 @@ const emit = defineEmits(['next', 'prev'])
 
 <template>
   <div class="config-simu">
-    <h2>Configure ton entraînement</h2>
+    <div class="simu-header">
+      <h2>Configure ton entraînement</h2>
+    </div>
     <div class="progress-bar">
       <div class="progress" :style="{ width: stepData.progress }"></div>
     </div>
-    <div class="question">
-      <div class="question-title">
-        <strong>{{ stepData.title }}</strong>
+
+    <div class="simu-body">
+      <div class="question">
+        <div class="question-title">
+          <strong>{{ stepData.title }}</strong>
+        </div>
+        <div class="question-desc">
+          {{ stepData.desc }}
+        </div>
       </div>
-      <div class="question-desc">
-        {{ stepData.desc }}
-      </div>
-    </div>
-    <div
-      class="choices"
-      :class="{ 'choices-grid': stepData.grid }"
-    >
-      <label
-        v-for="choice in stepData.choices"
-        :key="choice.value"
-        :class="['choice', selected === choice.value && 'selected']"
+      <div
+        class="choices"
+        :class="{ 'choices-grid': stepData.grid }"
       >
-        <input
-          type="radio"
-          :name="'step' + props.step"
-          :value="choice.value"
-          v-model="selected"
-          @change="handleChange"
-        />
-        <span>{{ choice.label }}</span>
-      </label>
+        <label
+          v-for="choice in stepData.choices"
+          :key="choice.value"
+          :class="['choice', selected === choice.value && 'selected']"
+        >
+          <input
+            type="radio"
+            :name="'step' + props.step"
+            :value="choice.value"
+            v-model="selected"
+            @change="handleChange"
+          />
+          <span>{{ choice.label }}</span>
+        </label>
+      </div>
     </div>
+
     <div class="footer">
       <button class="nav-btn" @click="$emit('prev')">
         <span>&lt;</span>
@@ -126,15 +132,34 @@ const emit = defineEmits(['next', 'prev'])
 
 <style scoped>
 .config-simu {
-  max-width: 60%;
+  max-width: 94%;
   margin: 0 auto;
-  background: #fff;
+  background: #fafafa;
   border-radius: 18px;
   box-shadow: 0 2px 16px 0 rgba(60,72,88,0.08);
-  padding: 2.2rem 1.5rem 1.2rem 1.5rem;
+  
   display: flex;
   flex-direction: column;
   align-items: center;
+  height : 667px;
+}
+.simu-header {
+  width: 100%;
+  background: rgb(0, 0, 0);;
+  padding: 1rem 0;
+  text-align: center;
+  height : 60px;
+  border-radius: 25px 25px 0 0;
+  color : #ff2222;
+  text-shadow: 0 0 6px #ff2222;
+  padding-top :  1.5rem;
+  padding-bottom :  2.6rem;
+}
+
+.simu-header h2 {
+  font-size: 2.4rem;
+  font-weight: 500;
+  margin: 0;
 }
 .progress-bar {
   width: 100%;
@@ -143,6 +168,7 @@ const emit = defineEmits(['next', 'prev'])
   border-radius: 8px;
   margin-bottom: 1.2rem;
   overflow: hidden;
+  margin-top : -5px;
 }
 .progress {
   height: 100%;
@@ -161,8 +187,9 @@ h2 {
   margin-bottom: 1.2rem;
 }
 .question-title {
-  font-size: 1.4rem;
+  font-size: 1.65rem;
   margin-bottom: 0.2rem;
+  margin-top: 1.5rem;
   text-align: center;
 }
 .question-desc {
@@ -173,7 +200,8 @@ h2 {
   text-align: center;
 }
 .choices {
-  width: 100%;
+ width: 40%;
+  margin: 0 auto; /* <-- recentre horizontalement */
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
@@ -237,5 +265,12 @@ h2 {
   font-size: 1.1rem;
   color: #222;
   opacity: 0.8;
+}
+.simu-body {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 </style>

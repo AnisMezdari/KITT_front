@@ -1,12 +1,12 @@
 <template>
   <header class="main-header">
     <div class="header-left">
-      <div class="logo-row">
-        <img src="../assets/Kitt_logo_v3_wk.png" alt="KITT Logo" class="logo" />
-        <span class="brand">KITT</span>
+      <div class="logo-row logo-hover">
+        <img src="../assets/logo_v2.png" alt="KITT Logo" class="logo" />
+        <img src="../assets/logo_text_v4.png" alt="KITT Logo" class="logo" />
       </div>
       <div class="header-titles">
-        <span class="home-page">Home page</span>
+        <span class="home-page">Simulation / </span>
         <span class="welcome">Welcome back, <b>Tony STARK</b></span>
       </div>
     </div>
@@ -43,37 +43,58 @@ const today = new Date().toLocaleDateString('en-GB', {
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
+  margin-top: -25px;
 }
 .logo-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  margin-top : 20px;
 }
 .logo {
-  width: 90px;
-  height: 60px;
+  width: 130px;
   margin-bottom: -20px;
   margin-top: 0; /* retire tout éventuel margin-top */
 }
+
+.logo-hover {
+  transition: transform 0.3s ease, filter 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.logo-hover:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.6));
+  cursor: pointer;
+}
 .brand {
-  font-size: 2rem;
-  font-weight: bold;
+  font-size: 2.5rem;
+  font-weight: 1000;
+  font-style: italic;
   letter-spacing: 0.1em;
   color: #222;
+  font-family: 'Syne Mono', monospace;
+}
+.container-logo-text{
+
+  height: 130px;
+  align-items: center;
 }
 .header-titles {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: flex-start;
-  gap: 2px;
+  gap: 25px;
+  padding-left : 15px;
+  margin-top: 18px;
 }
 .home-page {
-  font-size: 1.1rem;
+  font-size: 1.5rem;
   color: #888;
-  margin-bottom: 2px;
+
 }
 .welcome {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 400;
   color: #222;
 }

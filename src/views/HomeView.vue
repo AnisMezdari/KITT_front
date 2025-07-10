@@ -55,7 +55,7 @@ const simulationStep = ref(1)
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  margin-top: -65px;
+  margin-top: -120px;
   padding: 0 24px 24px 0px;
 }
 .sidebar {
@@ -65,12 +65,11 @@ const simulationStep = ref(1)
 }
 .main-content {
   flex: 1;
- 
-  background: #f7f8fa;
+  padding-right : 15px;
   border-radius: 20px;
   box-shadow: none;
- 
 }
+
 @media (max-width: 900px) {
   .content-row {
     flex-direction: column;
