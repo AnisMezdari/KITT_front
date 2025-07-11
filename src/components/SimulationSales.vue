@@ -29,7 +29,7 @@
     <div class="sim-main">
       <div class="sim-avatars">
         <div class="avatar-list">
-          <div class="avatar-card active-speaker">
+          <div :class="['avatar-card', isIaSpeaking ? 'active-speaker' : '']">
             <div class="avatar-top">
               <span class="avatar-timer-top">24:01:45</span>
             </div>
@@ -45,7 +45,7 @@
               <span class="mic-on material-icons">volume_up</span>
             </div>
           </div>
-          <div class="avatar-card">
+          <div :class="['avatar-card', isUserSpeaking ? 'active-speaker' : '']">
             <div class="avatar-top">
               <span class="avatar-timer-top">24:01:45</span>
             </div>
@@ -77,68 +77,24 @@
         </div>
 
         <div class="transcript-list">
-          <!-- STEVE (gauche) -->
-          <div class="transcript-row left">
-            <div class="transcript-item left">
+          <div
+            v-for="(msg, index) in messages"
+            :key="index"
+            class="transcript-row"
+            :class="msg.from === 'user' ? 'right' : 'left'"
+          >
+            <span v-if="msg.from === 'user'" class="item-info">{{ msg.time }}</span>
+            <div class="transcript-item" :class="msg.from === 'user' ? 'right' : 'left'">
               <div class="item-texts">
-                <h3 class="item-title">STEVE</h3>
-                <p class="item-description">yooo</p>
+                <h3 v-if="msg.from === 'user'" class="item-title right-name">TONY</h3>
+                <h3 v-else class="item-title">STEVE</h3>
+                <p class="item-description">{{ msg.text }}</p>
               </div>
             </div>
-            <span class="item-info">00:26</span>
-          </div>
-
-          <div class="transcript-row left">
-            <div class="transcript-item left">
-              <div class="item-texts">
-                <p class="item-description">gooooo Rocket league !!</p>
-              </div>
-            </div>
-            <span class="item-info">00:31</span>
-          </div>
-
-          <!-- TONY (droite) -->
-          <div class="transcript-row right">
-            <span class="item-info">00:17</span>
-            <div class="transcript-item right">
-              <div class="item-texts">
-                <h3 class="item-title right-name">TONY</h3>
-                <p class="item-message-right">Bonjour, c'est quoi ton rank ?</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="transcript-row left">
-            <div class="transcript-item left">
-              <div class="item-texts">
-                <h3 class="item-title">STEVE</h3>
-                <p class="item-message-right">Je suis platine 2 mais je sais faire des flips resets.</p>
-              </div>
-            </div>
-            <span class="item-info">00:26</span>
-          </div>
-
-          <div class="transcript-row right">
-            <span class="item-info">00:21</span>
-            <div class="transcript-item right">
-              <div class="item-texts">
-                <h3 class="item-title right-name">TONY</h3>
-                <p class="item-message-right">ok non merci.</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="transcript-row right">
-            <span class="item-info">00:21</span>
-            <div class="transcript-item right">
-              <div class="item-texts">
-                <p class="item-message-right">Au revoir.</p>
-              </div>
-            </div>
+            <span v-if="msg.from === 'ia'" class="item-info">{{ msg.time }}</span>
           </div>
         </div>
       </div>
-
       <!-- Insight -->
       <div class="sim-insight">
         <div class="insight-header">
@@ -151,7 +107,7 @@
         <div class="insight-list">
           <div class="insight-item">• Proposes une demo</div>
           <div class="insight-item">• Demandes si...</div>
-          <div class="insight-item">• on est là pour kiffer avant tout ?</div>
+          <div class="insight-item">• Hupper > iop ?</div>
         </div>
         <div class="insight-input">
           <input type="text" placeholder="Type Something..." />
@@ -162,8 +118,8 @@
 
     <!-- Footer -->
     <div class="sim-footer">
-      <button class="footer-btn mic">
-        <span class="material-icons">mic</span>
+      <button class="footer-btn mic" @click="toggleMic">
+        <span class="material-icons">{{ isMicOn ? 'mic' : 'mic_off' }}</span>
       </button>
       <button class="footer-btn upload">
         <span class="material-icons">upload</span>
@@ -182,8 +138,110 @@
 </template>
 
 <script setup>
-// Pas de logique pour la maquette
+import { ref, onMounted } from 'vue'
+
+const isMicOn = ref(true)
+const recognition = ref(null)
+const messages = ref([])
+
+const isUserSpeaking = ref(false)
+const isIaSpeaking = ref(false)
+
+let userSilenceTimeout = null
+let iaSilenceTimeout = null
+
+onMounted(() => {
+  if (!('webkitSpeechRecognition' in window)) {
+    alert('Reconnaissance vocale non supportée—utilise Chrome.')
+    return
+  }
+
+  const r = new webkitSpeechRecognition();
+  r.continuous = false;
+  r.interimResults = true;
+  r.lang = 'fr-FR';
+
+  r.onstart = () => console.log('✅ Reconnaissance démarrée');
+  r.onaudiostart = () => console.log('🔊 Audio détecté')
+  r.onspeechstart = () => triggerUserSpeaking();
+
+  r.onspeechend = () => scheduleUserSilence();
+  r.onsoundend = () => scheduleUserSilence();
+
+   r.onaudio = () => scheduleUserSilence();
+
+  function triggerUserSpeaking() {
+    console.log('⬆️ user speaking true');
+    isUserSpeaking.value = true;
+    if (userSilenceTimeout) clearTimeout(userSilenceTimeout);
+  }
+
+  function scheduleUserSilence() {
+    if (userSilenceTimeout) clearTimeout(userSilenceTimeout);
+    userSilenceTimeout = setTimeout(() => {
+      isUserSpeaking.value = false;
+      console.log('⬇️ user speaking false');
+    }, 50); // ajustez la durée selon vos besoins
+  }
+
+  r.onresult = async (ev) => {
+    const last = ev.results[ev.results.length - 1]
+    if (!last.isFinal) return
+
+    const text = last[0].transcript.trim()
+    messages.value.push({ from: 'user', text, time: timestamp() })
+
+    // déclenchement IA (inchangé)
+    
+
+
+    try {
+      const resp = await fetch('http://localhost:8000/api/v1/simulation/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_input: text })
+      })
+      const { response } = await resp.json()
+      messages.value.push({ from: 'ia', text: response, time: timestamp() })
+    } catch (e) {
+      console.error(e)
+      messages.value.push({ from: 'ia', text: 'Erreur serveur', time: timestamp() })
+    } finally {
+      isIaSpeaking.value = true
+      iaSilenceTimeout = setTimeout(() => {
+        isIaSpeaking.value = false
+      }, 2000)
+    }
+  }
+
+  r.onerror = (e) => console.error('Mic error', e.error)
+  r.onend = () => {
+    console.log('🔄 Reconnaissance arrêtée, on relance');
+    if (isMicOn.value) r.start();
+  };
+
+  r.start()
+})
+
+function toggleMic() {
+  if (!recognition.value) return
+  isMicOn.value = !isMicOn.value
+  if (isMicOn.value) {
+    recognition.value.start()
+  } else {
+    recognition.value.stop()
+    isUserSpeaking.value = false
+    isIaSpeaking.value = false
+    clearTimeout(userSilenceTimeout)
+    clearTimeout(iaSilenceTimeout)
+  }
+}
+
+function timestamp() {
+  return new Date().toLocaleTimeString().slice(0, 5)
+}
 </script>
+
 
 <style scoped>
 .sim-root {
