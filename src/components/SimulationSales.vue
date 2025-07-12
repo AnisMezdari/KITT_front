@@ -110,9 +110,11 @@
           <div class="insight-item">• Demandes si...</div>
           <div class="insight-item">• Hupper > iop ?</div>
         </div>
-        <div class="insight-input" v-show="showInsight">
-          <input type="text" placeholder="Type Something..." />
-          <button class="send-btn">➤</button>
+        <div class="ask-advice-container" v-show="showInsight">
+          <button class="ask-advice-btn">
+            <BrainCircuit class="icon-brain" />
+            Ask advice
+          </button>
         </div>
       </div>
       
@@ -142,6 +144,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { BrainCircuit } from 'lucide-vue-next'
 
 const isMicOn = ref(true)
 const recognition = ref(null)
@@ -254,6 +257,7 @@ function timestamp() {
   display: flex;
   flex-direction: column;
   min-height: 78.5vh;
+  
 }
 
 .sim-header {
@@ -506,7 +510,7 @@ function timestamp() {
   display: flex;
   flex-direction: column;
   min-width: 260px;
-  max-width: 35%;
+  max-width : 50%;
 
 }
 
@@ -521,6 +525,7 @@ function timestamp() {
   min-height: 40px;
   padding: 1rem 1.2rem;
   font-size: 1.5rem;
+  user-select: none;
 }
 
 .toggle-switch {
@@ -733,6 +738,8 @@ function timestamp() {
   display: flex;
   flex-direction: column;
   min-width: 220px;
+  transition: all 0.3s ease;
+    max-width: 30%;
 
 }
 
@@ -746,6 +753,7 @@ function timestamp() {
   min-height: 40px;
   padding: 1rem 1.2rem;
   font-size: 1.5rem;
+  user-select: none;
 }
 
 .insight-list {
@@ -898,6 +906,41 @@ function timestamp() {
   max-width: 140px;;
   min-width: 0px;
 
+}
+
+.ask-advice-container {
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+  padding: 1rem;
+}
+
+.ask-advice-btn {
+ background-color: #ff5a5a;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.ask-advice-btn:hover {
+  background-color: #e64949;
+}
+
+
+.icon-brain {
+  width: 28px;
+  height: 28px;
+  stroke-width: 2;
+  stroke: white;
 }
 
 

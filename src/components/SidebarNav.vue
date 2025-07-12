@@ -1,5 +1,5 @@
 <template>
-  <aside class="sidebar">
+  <aside class="sidebar" :class="['sidebar', isDark ? 'dark' : 'light']">
     <div class="sidebar-content">
       <nav class="nav">
         <a
@@ -176,7 +176,7 @@ defineEmits(['toggle-theme', 'navigate'])
   align-items: center;
   gap: 0.9rem;
   font-size: 1.08rem;
-  color: #fff;
+
   padding: 0.7rem 1.2rem;
   border-radius: 0.7rem;
   text-decoration: none;
@@ -196,7 +196,7 @@ defineEmits(['toggle-theme', 'navigate'])
 .nav-item:hover,
 .nav-item.active {
   background: rgba(174, 83, 83, 0.1); /* zone hover classique, léger fond rouge */
-  color: #fff;
+
   transition: background 0.18s, color 0.18s;
 }
 
@@ -226,14 +226,14 @@ transform: scale(1.38) rotate(-14deg);
 .nav-item.settings {
   margin: 1.2rem 1.2rem 0 1.2rem;
   background: none;
-  color: #fff;
+
   font-weight: 500;
   justify-content: space-between;
   padding-right: 1.5rem;
 }
 .nav-item.settings .arrow {
   margin-left: auto;
-  color: #fff;
+
   font-size: 1.2em;
 }
 .theme-switch {
@@ -278,4 +278,26 @@ transform: scale(1.38) rotate(-14deg);
   text-shadow: 0 0 4px #ff2222;
   transition: color 0.18s, text-shadow 0.18s;
 }
+
+.sidebar.light {
+  background: #fff;
+  color: black;
+}
+
+.sidebar.dark {
+  background: #111;
+  color: white;
+}
+
+.sidebar.light a  {
+
+  color: black;
+}
+
+
+.sidebar.dark a  {
+
+  color: rgb(255, 255, 255);
+}
+
 </style>

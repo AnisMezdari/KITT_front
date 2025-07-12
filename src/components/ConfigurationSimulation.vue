@@ -1,5 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
+import bgImage from '../assets/KITT_tete.png'
+
 const props = defineProps({
   step: { type: Number, default: 1 }
 })
@@ -88,7 +90,7 @@ const emit = defineEmits(['next', 'prev'])
       <div class="progress" :style="{ width: stepData.progress }"></div>
     </div>
 
-    <div class="simu-body">
+    <div class="simu-body" :style="{ backgroundImage: `url(${bgImage})` }">
       <div class="question">
         <div class="question-title">
           <strong>{{ stepData.title }}</strong>
@@ -142,6 +144,7 @@ const emit = defineEmits(['next', 'prev'])
   flex-direction: column;
   align-items: center;
   height : 667px;
+  user-select: none;
 }
 .simu-header {
   width: 100%;
@@ -157,13 +160,29 @@ const emit = defineEmits(['next', 'prev'])
 }
 
 .simu-header h2 {
-  font-size: 2.4rem;
-  font-weight: 500;
+  font-size: 2.6rem;
+  font-weight: 200;
   margin: 0;
+  color: #f3cdcd;
+  text-shadow:
+    -2px -2px 0 #811414,
+    2px -2px 0 #821515,
+    -2px 2px 0 #8b1515,
+    2px 2px 0 #b71c1c,
+    0 0 6px #ff2222,
+    0 0 8px #ff2222;
+
+  animation: slowBlink 2s infinite;
 }
+
+@keyframes slowBlink {
+  0%, 100% { opacity: 1; }
+  25% { opacity: 0.6; }
+}
+
 .progress-bar {
   width: 100%;
-  height: 12px;
+  height: 8px;
   background: #eee;
   border-radius: 8px;
   margin-bottom: 1.2rem;
@@ -206,6 +225,7 @@ h2 {
   flex-direction: column;
   gap: 0.7rem;
   margin-bottom: 1.2rem;
+  user-select: none;
 }
 .choices-grid {
   display: grid;
@@ -272,5 +292,9 @@ h2 {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+   background-image: url('../assets/KITT.tete.png');
+  background-repeat: no-repeat;
+  background-position: right bottom;  /* bas à droite */
+  background-size: 450px auto;       /* largeur 150px, hauteur auto */
 }
 </style>
