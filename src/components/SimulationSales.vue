@@ -67,16 +67,16 @@
       </div>
 
       <!-- Transcript -->
-      <div class="sim-transcript">
+      <div class="sim-transcript"  :class="{ collapsed: !showTranscript }" >
         <div class="transcript-header">
-          Transcript
+          <span v-if="showTranscript">Transcript</span>
           <div class="toggle-switch">
-            <button class="switch-btn active">Show</button>
-            <button class="switch-btn">Hide</button>
+            <button class="switch-btn" :class="{ active: showTranscript }" @click="showTranscript = true">Show</button>
+            <button class="switch-btn" :class="{ active: !showTranscript }" @click="showTranscript = false">Hide</button>
           </div>
         </div>
 
-        <div class="transcript-list">
+        <div class="transcript-list" v-show="showTranscript">
           <div
             v-for="(msg, index) in messages"
             :key="index"
@@ -95,25 +95,28 @@
           </div>
         </div>
       </div>
+
       <!-- Insight -->
-      <div class="sim-insight">
+      <div class="sim-insight"  :class="{ collapsed: !showInsight }">
         <div class="insight-header">
-          Insight
+         <span v-if="showInsight">Insight</span>
           <div class="toggle-switch">
-            <button class="switch-btn active">Show</button>
-            <button class="switch-btn">Hide</button>
+            <button class="switch-btn" :class="{ active: showInsight }" @click="showInsight = true">Show</button>
+            <button class="switch-btn" :class="{ active: !showInsight }" @click="showInsight = false">Hide</button>
           </div>
         </div>
-        <div class="insight-list">
+        <div class="insight-list" v-show="showInsight">
           <div class="insight-item">• Proposes une demo</div>
           <div class="insight-item">• Demandes si...</div>
           <div class="insight-item">• Hupper > iop ?</div>
         </div>
-        <div class="insight-input">
+        <div class="insight-input" v-show="showInsight">
           <input type="text" placeholder="Type Something..." />
           <button class="send-btn">➤</button>
         </div>
       </div>
+      
+
     </div>
 
     <!-- Footer -->
@@ -147,6 +150,9 @@ const messages = ref([])
 const isUserSpeaking = ref(false)
 const isIaSpeaking = ref(false)
 
+const showTranscript = ref(true)
+const showInsight = ref(true)
+
 let userSilenceTimeout = null
 let iaSilenceTimeout = null
 
@@ -157,6 +163,7 @@ onMounted(() => {
   }
 
   const r = new webkitSpeechRecognition();
+  recognition.value = r;
   r.continuous = false;
   r.interimResults = true;
   r.lang = 'fr-FR';
@@ -168,7 +175,7 @@ onMounted(() => {
   r.onspeechend = () => scheduleUserSilence();
   r.onsoundend = () => scheduleUserSilence();
 
-   r.onaudio = () => scheduleUserSilence();
+  r.onaudio = () => scheduleUserSilence();
 
   function triggerUserSpeaking() {
     console.log('⬆️ user speaking true');
@@ -181,7 +188,7 @@ onMounted(() => {
     userSilenceTimeout = setTimeout(() => {
       isUserSpeaking.value = false;
       console.log('⬇️ user speaking false');
-    }, 50); // ajustez la durée selon vos besoins
+    }, 50);
   }
 
   r.onresult = async (ev) => {
@@ -190,10 +197,6 @@ onMounted(() => {
 
     const text = last[0].transcript.trim()
     messages.value.push({ from: 'user', text, time: timestamp() })
-
-    // déclenchement IA (inchangé)
-    
-
 
     try {
       const resp = await fetch('http://localhost:8000/api/v1/simulation/simulate', {
@@ -389,7 +392,16 @@ function timestamp() {
   min-height: 200px;
   padding: 20px;
   background: linear-gradient(120deg, #f6f6f6, #fbfbfb);
-    max-height: 53vh;
+  max-height: 53vh;
+  user-select: none;
+}
+
+.sim-avatars,
+.sim-insight,
+.sim-transcript {
+  flex-grow: 1;
+  transition: all 0.3s ease;
+    border-left: 2px solid #eee;
 }
 
 .avatar-list {
@@ -400,20 +412,6 @@ function timestamp() {
   max-width: 420px;
 }
 
-
-
-/* 3) Ajustez les proportions si besoin */
-.sim-avatars {
-  flex: 1.1;
-}
-
-.sim-transcript {
-  flex: 2.2;
-}
-
-.sim-insight {
-  flex: 1.2;
-}
 
 .avatar-card {
   position: relative;
@@ -503,16 +501,15 @@ function timestamp() {
 
 
 .sim-transcript {
-  flex: 2.2;
   background: #f8fafd;
-
-  box-shadow: 0 1px 4px 0 rgba(60, 72, 88, 0.07);
+  box-shadow: 0 px 4px 0 rgba(60, 72, 88, 0.07);
   display: flex;
   flex-direction: column;
   min-width: 260px;
   max-width: 35%;
 
 }
+
 
 .transcript-header {
   font-weight: 600;
@@ -531,7 +528,7 @@ function timestamp() {
   align-items: center;
   background: #f2f2f2;
   border-radius: 999px;
-  padding: 2px 6px;
+
   gap: 0;
   margin-left: auto;
 }
@@ -540,8 +537,7 @@ function timestamp() {
   border: none;
   background: transparent;
   color: #d32f2f;
-  font-size: 0.95rem;
-  padding: 0.2rem 1.1rem;
+  font-size: 0.7rem;
   border-radius: 999px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
@@ -757,8 +753,8 @@ function timestamp() {
   flex-direction: column;
   gap: 0.7rem;
   margin-bottom: 1.2rem;
-  margin-left: 5px;
-  margin-right: 5px;
+  margin-left: 15px;
+  margin-right: 15px;
 }
 
 .insight-item {
@@ -896,4 +892,13 @@ function timestamp() {
 .msg-text+.msg-text {
   margin-top: 0.4rem;
 }
+
+.collapsed {
+
+  max-width: 140px;;
+  min-width: 0px;
+
+}
+
+
 </style>
