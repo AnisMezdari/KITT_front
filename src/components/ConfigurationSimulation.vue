@@ -8,7 +8,7 @@ const props = defineProps({
 const selected = ref('')
 
 const stepData = computed(() => {
-  if (props.step === 1) {
+  if (props.step === 0) {
     return {
       progress: '25%',
       title: "Veux-tu passer par l’étape de qualification ?",
@@ -21,48 +21,47 @@ const stepData = computed(() => {
       stepLabel: '1/4'
     }
   }
-  if (props.step === 2) {
+  if (props.step === 1) {
     return {
       progress: '50%',
       title: "Quel type d’appel ?",
       desc: "en profondeur ?",
       choices: [
         { value: 'cold', label: 'Cold call' },
-        { value: 'rdv', label: 'Rendez-vous de vente' },
-        { value: 'alea', label: 'Aléatoire' }
+        { value: 'rdv', label: 'Qualification de call' },
+        { value: 'alea', label: 'Mise en situation de vente' }
       ],
-      stepLabel: '2/4'
+      stepLabel: '1/3'
     }
   }
-  if (props.step === 3) {
+  if (props.step === 2) {
     return {
       progress: '75%',
       title: "Quel type de secteur ?",
       desc: "Kaylon ou Kaydop ?",
       choices: [
-        { value: 'retail', label: 'Retail' },
-        { value: 'immobilier', label: 'Immobilier' },
-        { value: 'energie', label: 'Energie' },
-        { value: 'telecom', label: 'Telecommunication' },
+        { value: '⁠Tech', label: '⁠Tech / IT / Logiciels' },
+        { value: 'agences', label: '⁠Services professionnels / cabinets / agences' },
+        { value: '⁠Industrie', label: '⁠Industrie / Manufacturing / BTP' },
+        /*{ value: 'telecom', label: 'Telecommunication' },
         { value: 'luxe', label: 'Sport ( Kanu tu en as besoin)' },
-        { value: 'alea', label: 'Aléatoire' }
+        { value: 'alea', label: 'Aléatoire' }*/
       ],
-      stepLabel: '3/4',
+      stepLabel: '2/3',
       grid: true
     }
   }
-  if (props.step === 4) {
+  if (props.step === 3) {
   return {
     progress: '100%',
     title: "Qui appelles-tu ?",
     desc: "Persona",
     choices: [
-      { value: 'ceo', label: 'CEO' },
-      { value: 'cmo', label: 'CMO' },
-      { value: 'daf', label: 'DAF' },
-      { value: 'alea', label: 'Aléatoire' }
+      { value: 'ceo', label: 'CEO / Founder' },
+      { value: 'cmo', label: 'Head of Sales / Sales Director / VP Sales' },
+      { value: 'daf', label: 'Sales Ops / RevOps' },
     ],
-    stepLabel: '4/4',
+    stepLabel: '3/3',
     grid: true
   }
 }
@@ -164,15 +163,6 @@ const emit = defineEmits(['next', 'prev'])
   font-weight: 200;
   margin: 0;
   color: #f3cdcd;
-  text-shadow:
-    -2px -2px 0 #811414,
-    2px -2px 0 #821515,
-    -2px 2px 0 #8b1515,
-    2px 2px 0 #b71c1c,
-    0 0 6px #ff2222,
-    0 0 8px #ff2222;
-
-  animation: slowBlink 2s infinite;
 }
 
 @keyframes slowBlink {

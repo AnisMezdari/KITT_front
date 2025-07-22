@@ -3,7 +3,7 @@
     <Header />
     <div class="content-row">
       <SidebarNav
-        :isDark="isDark"
+        :isDark="!isDark"
         :selected="selected"
         @toggle-theme="toggleTheme"
         @navigate="handleNavigate"
@@ -11,7 +11,7 @@
       />
     <main class="main-content">
         <LoadingSimulation
-          v-if="selected === 'simulation' && simulationStep > 4"
+          v-if="selected === 'simulation' && simulationStep > 3"
         />
         <ConfigurationSimulation
           v-else-if="selected === 'simulation'"
@@ -55,8 +55,8 @@ const simulationStep = ref(1)
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  margin-top: -120px;
-  padding: 0 24px 24px 0px;
+  margin-top: -45px;
+  padding: 0 24px 0px 0px;
 }
 .sidebar {
   flex-shrink: 0;
