@@ -8,7 +8,7 @@
       </div>
     </div>
 
-    <div class="transcript-list" v-show="showTranscript">
+    <div class="transcript-list" v-if="showTranscript" ref="transcriptListRef">
       <div
         v-for="(msg, index) in messages"
         :key="index"
@@ -30,13 +30,23 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 
 const showTranscript = ref(true);
 
-defineProps({
+const props = defineProps({
   messages: Array
 });
+
+// Référence sur le container scrollable
+const transcriptListRef = ref(null);
+
+watch(() => props.messages, async () => {
+  await nextTick();
+  if (transcriptListRef.value) {
+    transcriptListRef.value.scrollTop = transcriptListRef.value.scrollHeight;
+  }
+}, { deep: true });
 </script>
 
 <style scoped>
@@ -119,6 +129,7 @@ defineProps({
   margin-left: 15px;
   margin-right: 0px;
   box-sizing: border-box;
+
 }
 
 .transcript-item {

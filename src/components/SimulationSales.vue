@@ -8,7 +8,7 @@
         :isMicOn="isMicOn"
       />
       <TranscriptSimulation :messages="messages" />
-      <InsightSimulation />
+      <InsightSimulation :advice="insightAdvice" />
     </div>
     <FooterSimulation :isMicOn="isMicOn" @toggleMic="toggleMic" />
   </div>
@@ -30,6 +30,7 @@ const isIaSpeaking = ref(false);
 let userSilenceTimeout = null;
 let iaSilenceTimeout = null;
 const isListeningAllowed = ref(true);
+const insightAdvice = ref('');
 
 async function textToSpeech(text) {
   console.log("sa passe");
@@ -110,7 +111,8 @@ r.onresult = async (ev) => {
       body: JSON.stringify({ user_input: text })
     });
 
-    const { response } = await resp.json();
+    const { response,insight_text  } = await resp.json();
+    insightAdvice.value = insight_text?.advice ?? '';
 
     setTimeout(async () => {
       messages.value.push({ from: 'ia', text: response, time: timestamp() });

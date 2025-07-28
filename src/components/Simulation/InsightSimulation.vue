@@ -1,5 +1,6 @@
 <template>
   <div class="sim-insight" :class="{ collapsed: !showInsight }">
+    <!-- Header -->
     <div class="insight-header">
       <span v-if="showInsight">Insight</span>
       <div class="toggle-switch">
@@ -7,41 +8,84 @@
         <button class="switch-btn" :class="{ active: !showInsight }" @click="showInsight = false">Hide</button>
       </div>
     </div>
-    <div class="insight-list" v-show="showInsight">
+
+    <!-- Liste d'insights -->
+    <div class="insight-list" v-show="showInsight" ref="insightListRef">
       <div
         v-for="(insight, index) in insights"
         :key="index"
         class="insight-item"
+        @click="openInsight(insight)"
       >
-        • {{ insight }}
+        {{ insight.length > 100 ? insight.slice(0, 100) + '...' : insight }}
       </div>
     </div>
+
+    <!-- Bouton Ask Advice -->
     <div class="ask-advice-container" v-show="showInsight">
-      <button
-        class="ask-advice-btn"
-        @click="askAdvice"
-        :disabled="loading"
-      >
+      <button class="ask-advice-btn" @click="askAdvice" :disabled="loading">
         <BrainCircuit class="icon-brain" />
         {{ loading ? "Loading..." : "Ask advice" }}
       </button>
+    </div>
+
+    <!-- Modal avec insight complet -->
+    <div class="insight-modal" v-if="selectedInsight" @click.self="selectedInsight = null">
+      <div class="modal-content">
+        <h3>Insight complet</h3>
+        <p>{{ selectedInsight }}</p>
+        <button class="close-btn" @click="selectedInsight = null">Fermer</button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 import { BrainCircuit } from 'lucide-vue-next';
 
-// Etat pour afficher/cacher l'insight
+const insightListRef = ref(null);
 const showInsight = ref(true);
+const selectedInsight = ref(null); // Insight sélectionné
 
-// Liste dynamique des conseils affichés
-const insights = ref([
-  "Proposes une demo",
+const props = defineProps({
+  advice: String,
+  loading: Boolean,
+  askAdvice: Function
+});
+
+ const insights = ref([
+  "Proposes une demo qui met en avant les fonctionnalités clés , et les avantages du produit. Et ensuite, propose un essai gratuit ou une démo personnalisée. afin de permettre au client de tester le produit avant de prendre une décision. et de répondre à ses questions. pour chaque génération de insight, on ajoute un nouveau conseil à la liste ",
   "Demandes si...",
   "Hupper > iop ?",
+   "Hupper > iop ?",
+    "Hupper > iop ?",
+     "Hupper > iop ?",
+      "Hupper > iop ?",
+       "Hupper > iop ?",
+        "Hupper > iop ?",
+         "Hupper > iop ?",
 ]);
+
+watch(() => props.advice, async (newAdvice) => {
+  if (newAdvice && !insights.value.includes(newAdvice)) {
+    insights.value.push(newAdvice);
+
+    await nextTick();
+    if (insightListRef.value) {
+      insightListRef.value.scrollTop = insightListRef.value.scrollHeight;
+    }
+  }
+});
+
+// Ouvre le modal
+function openInsight(insight) {
+  selectedInsight.value = insight;
+}
+
+
+// Liste dynamique des conseils affichés
+
 
 // Etat loading pour la requête
 const loading = ref(false);
@@ -55,41 +99,7 @@ const conversationHistory = [
 ];
 
 // Fonction qui envoie la requête et ajoute la réponse aux insights
-async function askAdvice() {
-  loading.value = true;
 
-  try {
-    const response = await fetch("http://localhost:8000/api/v1/insights/getInsight", {  // adapte l'URL selon ton backend
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "accept-language": "fr"  // ou dynamique selon la langue
-      },
-      body: JSON.stringify({
-        conversation_history: conversationHistory,
-        secteur: "logiciel"
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Erreur réseau: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.advice) {
-      // Ajoute la nouvelle réponse à la liste des insights
-      insights.value.push(data.advice);
-    } else {
-      insights.value.push("Pas de conseil reçu");
-    }
-
-  } catch (error) {
-    insights.value.push(`Erreur: ${error.message}`);
-  } finally {
-    loading.value = false;
-  }
-}
 </script>
 
 <style scoped>
@@ -122,21 +132,34 @@ async function askAdvice() {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-  margin-bottom: 1.2rem;
+  margin-bottom: 0.3rem;
   margin-left: 15px;
   margin-right: 15px;
+
+  max-height: 350px;
+  overflow-y: auto;
+  padding-right: 5px;
 }
 
 .insight-item {
   background: #fff;
   border-radius: 25px;
   padding: 0.7rem 1rem;
+  padding-bottom : 1rem;
   font-size: 1.05rem;
   box-shadow: 0 1px 2px 0 rgba(60, 72, 88, 0.04);
   border: 2px solid #f2f2f2;
   min-height: 40px;
   display: flex;
   align-items: center;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;       /* nombre de lignes max */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+
 }
 
 .toggle-switch {
@@ -196,7 +219,7 @@ async function askAdvice() {
   border: none;
   border-radius: 999px;
   padding: 0.7rem 2rem;
-  font-size: 1.1rem;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s ease;
@@ -226,4 +249,39 @@ async function askAdvice() {
   max-width: 140px;
   min-width: 0px;
 }
+
+.insight-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 80%;
+  max-width: 600px;
+  max-height: 80%;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn {
+  margin-top: 1rem;
+  background-color: #d03d3d;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+
 </style>
