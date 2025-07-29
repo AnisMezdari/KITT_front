@@ -1,90 +1,98 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { useSimulationStore } from '../stores/simulationStore'
 import bgImage from '../assets/KITT_tete.png'
+import LoadingSimulation from './LoadingSimulation.vue'  // import du composant loading
 
-const props = defineProps({
-  step: { type: Number, default: 1 }
-})
-const selected = ref('')
+const store = useSimulationStore()
+const step = ref(0)
+const maxStep = 2  // 3 étapes : 0, 1, 2
+const selected = ref(store.selections[step.value] || '')
+const isLoading = ref(false)
 
-const stepData = computed(() => {
-  if (props.step === 0) {
-    return {
-      progress: '25%',
-      title: "Veux-tu passer par l’étape de qualification ?",
-      desc: "C’est quoi cette étape : apple va mettre en place un système de filtre ...",
-      choices: [
-        { value: 'oui', label: 'Oui' },
-        { value: 'non', label: 'Non' },
-        { value: 'alea', label: 'Aléatoire' }
-      ],
-      stepLabel: '1/4'
+function updateSelected() {
+  selected.value = store.selections[step.value] || ''
+}
+
+function handleChange() {
+  if (selected.value) {
+    store.saveSelection(step.value, selected.value)
+    if (step.value < maxStep) {
+      step.value++
+      updateSelected()
+    } else {
+      // Dernière étape, lancement du chargement
+      isLoading.value = true
     }
   }
-  if (props.step === 1) {
-    return {
-      progress: '50%',
+}
+
+function nextStep() {
+  if (step.value < maxStep) {
+    step.value++
+    updateSelected()
+  }
+}
+
+function prevStep() {
+  if (step.value > 0) {
+    step.value--
+    updateSelected()
+  }
+}
+
+const stepData = computed(() => {
+  switch (step.value) {
+    case 0: return {
+      progress: '33%',
       title: "Quel type d’appel ?",
-      desc: "en profondeur ?",
+      desc: "",
       choices: [
-        { value: 'cold', label: 'Cold call' },
-        { value: 'rdv', label: 'Qualification de call' },
-        { value: 'alea', label: 'Mise en situation de vente' }
+        { value: 'Cold call', label: 'Cold call' },
+        { value: 'Qualification de call', label: 'Qualification de call' },
+        { value: 'Mise en situation de vente', label: 'Mise en situation de vente' }
       ],
       stepLabel: '1/3'
     }
-  }
-  if (props.step === 2) {
-    return {
-      progress: '75%',
+    case 1: return {
+      progress: '67%',
       title: "Quel type de secteur ?",
-      desc: "Kaylon ou Kaydop ?",
+      desc: "",
       choices: [
-        { value: '⁠Tech', label: '⁠Tech / IT / Logiciels' },
-        { value: 'agences', label: '⁠Services professionnels / cabinets / agences' },
-        { value: '⁠Industrie', label: '⁠Industrie / Manufacturing / BTP' },
-        /*{ value: 'telecom', label: 'Telecommunication' },
-        { value: 'luxe', label: 'Sport ( Kanu tu en as besoin)' },
-        { value: 'alea', label: 'Aléatoire' }*/
+        { value: '⁠Tech / IT / Logiciels', label: '⁠Tech / IT / Logiciels' },
+        { value: '⁠Services professionnels / cabinets / agences', label: '⁠Services professionnels / cabinets / agences' },
+        { value: '⁠Industrie / Manufacturing / BTP', label: '⁠Industrie / Manufacturing / BTP' },
       ],
       stepLabel: '2/3',
       grid: true
     }
+    case 2: return {
+      progress: '100%',
+      title: "Qui appelles-tu ?",
+      desc: "Persona",
+      choices: [
+        { value: 'CEO / Founder', label: 'CEO / Founder' },
+        { value: 'Head of Sales / Sales Director / VP Sales', label: 'Head of Sales / Sales Director / VP Sales' },
+        { value: 'Sales Ops / RevOps', label: 'Sales Ops / RevOps' },
+      ],
+      stepLabel: '3/3',
+      grid: true
+    }
+    default: return {}
   }
-  if (props.step === 3) {
-  return {
-    progress: '100%',
-    title: "Qui appelles-tu ?",
-    desc: "Persona",
-    choices: [
-      { value: 'ceo', label: 'CEO / Founder' },
-      { value: 'cmo', label: 'Head of Sales / Sales Director / VP Sales' },
-      { value: 'daf', label: 'Sales Ops / RevOps' },
-    ],
-    stepLabel: '3/3',
-    grid: true
-  }
-}
-  return {}
 })
-
-function handleChange() {
-  if (selected.value) {
-    setTimeout(() => {
-      emit('next')
-    }, 120)
-  }
-}
-const emit = defineEmits(['next', 'prev'])
-
-
 </script>
 
 <template>
-  <div class="config-simu">
+
+  <div v-if="isLoading">
+    <LoadingSimulation />
+  </div>
+  <div v-else class="config-simu">
     <div class="simu-header">
       <h2>Configure ton entraînement</h2>
     </div>
+
     <div class="progress-bar">
       <div class="progress" :style="{ width: stepData.progress }"></div>
     </div>
@@ -109,7 +117,7 @@ const emit = defineEmits(['next', 'prev'])
         >
           <input
             type="radio"
-            :name="'step' + props.step"
+            :name="'step' + step"
             :value="choice.value"
             v-model="selected"
             @change="handleChange"
@@ -120,16 +128,18 @@ const emit = defineEmits(['next', 'prev'])
     </div>
 
     <div class="footer">
-      <button class="nav-btn" @click="$emit('prev')">
+      <button class="nav-btn" @click="prevStep" :disabled="step === 0">
         <span>&lt;</span>
       </button>
       <span class="step">{{ stepData.stepLabel }}</span>
-      <button class="nav-btn" @click="$emit('next')">
+      <button class="nav-btn" @click="nextStep" :disabled="step === maxStep">
         <span>&gt;</span>
       </button>
     </div>
+
   </div>
 </template>
+
 
 <style scoped>
 .config-simu {
@@ -138,46 +148,38 @@ const emit = defineEmits(['next', 'prev'])
   background: #fafafa;
   border-radius: 18px;
   box-shadow: 0 2px 16px 0 rgba(60,72,88,0.08);
-  
   display: flex;
   flex-direction: column;
   align-items: center;
-  height : 667px;
+  height: 667px;
   user-select: none;
+  padding-bottom: 1rem;
 }
+
 .simu-header {
   width: 100%;
-  background: rgb(0, 0, 0);;
-  padding: 1rem 0;
+  background: #000;
+  padding: 2rem 0 1rem;
   text-align: center;
-  height : 60px;
   border-radius: 25px 25px 0 0;
-  color : #ff2222;
+  color: #ff2222;
   text-shadow: 0 0 6px #ff2222;
-  padding-top :  1.5rem;
-  padding-bottom :  2.6rem;
 }
 
 .simu-header h2 {
   font-size: 2.6rem;
-  font-weight: 200;
+  font-weight: 300;
   margin: 0;
   color: #f3cdcd;
 }
 
-@keyframes slowBlink {
-  0%, 100% { opacity: 1; }
-  25% { opacity: 0.6; }
-}
-
 .progress-bar {
-  width: 100%;
+  width: 90%;
   height: 8px;
   background: #eee;
   border-radius: 8px;
-  margin-bottom: 1.2rem;
+  margin: 1rem 0;
   overflow: hidden;
-  margin-top : -5px;
 }
 .progress {
   height: 100%;
@@ -185,36 +187,47 @@ const emit = defineEmits(['next', 'prev'])
   border-radius: 8px;
   transition: width 0.3s;
 }
-h2 {
-  font-size: 1.5rem;
-  font-weight: 500;
-  margin-bottom: 1.2rem;
-  text-align: center;
+
+.simu-body {
+  flex-grow: 1;
+  width: 100%;
+  background-size: 30% auto; /* taille réduite */
+  background-repeat: no-repeat;
+  background-position: right bottom; /* aligné à droite en bas */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
 }
+
 .question {
   width: 100%;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1rem;
 }
+
 .question-title {
-  font-size: 1.65rem;
-  margin-bottom: 0.2rem;
-  margin-top: 1.5rem;
+  font-size: 1.6rem;
+  margin-bottom: 0.3rem;
+  margin-top: 1rem;
   text-align: center;
 }
+
 .question-desc {
   font-size: 1rem;
   color: #444;
   opacity: 0.85;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1rem;
   text-align: center;
 }
+
 .choices {
- width: 40%;
-  margin: 0 auto; /* <-- recentre horizontalement */
+  width: 80%;
+  max-width: 700px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.5rem;
   user-select: none;
 }
 .choices-grid {
@@ -251,12 +264,14 @@ h2 {
 .choice.selected input[type="radio"] {
   accent-color: #fff;
 }
+
 .footer {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 0.8rem;
+  margin-top: auto;
+  padding: 1rem 2rem;
 }
 .nav-btn {
   background: none;
@@ -271,20 +286,14 @@ h2 {
 .nav-btn:hover {
   background: #f5f5f5;
 }
+.nav-btn:disabled {
+  color: #ddd;
+  cursor: default;
+  background: none;
+}
 .step {
   font-size: 1.1rem;
   color: #222;
   opacity: 0.8;
-}
-.simu-body {
-  flex: 1;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-   background-image: url('../assets/KITT.tete.png');
-  background-repeat: no-repeat;
-  background-position: right bottom;  /* bas à droite */
-  background-size: 450px auto;       /* largeur 150px, hauteur auto */
 }
 </style>

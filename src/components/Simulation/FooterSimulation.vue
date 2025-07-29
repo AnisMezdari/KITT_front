@@ -12,21 +12,28 @@
     <button class="footer-btn more">
       <span class="material-icons">more_horiz</span>
     </button>
-    <button class="footer-btn end-btn">
+    <button class="footer-btn end-btn" @click="navigateToScore">
       <span class="material-icons endcall-icon">phone_disabled</span>
     </button>
   </div>
 </template>
 
 <script setup>
-defineProps({
-  isMicOn: Boolean
-});
+import { useRouter } from 'vue-router'
 
-const emit = defineEmits(['toggleMic']);
+defineProps({
+  isMicOn: Boolean,
+})
+
+const emit = defineEmits(['toggleMic', 'navigate'])
+const router = useRouter()
 
 function toggleMic() {
-  emit('toggleMic');
+  emit('toggleMic')
+}
+
+function navigateToScore() {
+   router.push({ name: 'score' })
 }
 </script>
 
@@ -44,7 +51,7 @@ function toggleMic() {
 }
 
 .footer-btn {
-  background: rgba(255, 34, 34, 0.10);
+  background: rgba(255, 34, 34, 0.1);
   border: 1px solid #dcdcdc;
   border-radius: 50%;
   width: 40px;

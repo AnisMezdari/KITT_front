@@ -7,168 +7,168 @@
         :isUserSpeaking="isUserSpeaking"
         :isMicOn="isMicOn"
       />
-      <TranscriptSimulation :messages="messages" />
+      <TranscriptSimulation :messages="store.messages" />
       <InsightSimulation :advice="insightAdvice" />
     </div>
-    <FooterSimulation :isMicOn="isMicOn" @toggleMic="toggleMic" />
+    <FooterSimulation
+      :isMicOn="isMicOn"
+      @toggleMic="toggleMic"
+      @navigate="handleNavigate"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import HeaderSimulation from './Simulation/HeaderSimulation.vue';
-import AvatarSimulation from './Simulation/AvatarSimulation.vue';
-import TranscriptSimulation from './Simulation/TranscriptSimulation.vue';
-import InsightSimulation from './Simulation/InsightSimulation.vue';
-import FooterSimulation from './Simulation/FooterSimulation.vue';
+import { ref, onMounted } from 'vue'
+import HeaderSimulation from './Simulation/HeaderSimulation.vue'
+import AvatarSimulation from './Simulation/AvatarSimulation.vue'
+import TranscriptSimulation from './Simulation/TranscriptSimulation.vue'
+import InsightSimulation from './Simulation/InsightSimulation.vue'
+import FooterSimulation from './Simulation/FooterSimulation.vue'
+import { useSimulationStore } from '../stores/simulationStore'
 
-const isMicOn = ref(true);
-const recognition = ref(null);
-const messages = ref([]);
-const isUserSpeaking = ref(false);
-const isIaSpeaking = ref(false);
-let userSilenceTimeout = null;
-let iaSilenceTimeout = null;
-const isListeningAllowed = ref(true);
-const insightAdvice = ref('');
+const emit = defineEmits(['navigate'])
+
+const store = useSimulationStore()
+
+const isMicOn = ref(true)
+const recognition = ref(null)
+const isUserSpeaking = ref(false)
+const isIaSpeaking = ref(false)
+let userSilenceTimeout = null
+const isListeningAllowed = ref(true)
+const insightAdvice = ref('')
+
+function timestamp() {
+  return new Date().toLocaleTimeString().slice(0, 5)
+}
 
 async function textToSpeech(text) {
-  console.log("sa passe");
   try {
-    const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/nr2EGJNe96rzn9FRlTId', {
-      method: 'POST',
-      headers: {
-        'Accept': 'audio/mpeg',
-        'Content-Type': 'application/json',
-        'xi-api-key': 'sk_58fc3edec9c32f13abdee09185792ac9b9bda54c413f273b'
-      },
-      body: JSON.stringify({
-        text: text,
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75
-        }
-      })
-    });
+    const response = await fetch(
+      'https://api.elevenlabs.io/v1/text-to-speech/nr2EGJNe96rzn9FRlTId',
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'audio/mpeg',
+          'Content-Type': 'application/json',
+          'xi-api-key': 'sk_58fc3edec9c32f13abdee09185792ac9b9bda54c413f273b',
+        },
+        body: JSON.stringify({
+          text,
+          voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+        }),
+      }
+    )
+    if (!response.ok) throw new Error('Network response was not ok')
 
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-
-    const audioData = await response.blob();
-    const audioUrl = URL.createObjectURL(audioData);
-    const audio = new Audio(audioUrl);
-    audio.play();
+    const audioData = await response.blob()
+    const audioUrl = URL.createObjectURL(audioData)
+    const audio = new Audio(audioUrl)
+    audio.play()
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error:', error)
   }
 }
 
 onMounted(() => {
   if (!('webkitSpeechRecognition' in window)) {
-    alert('Reconnaissance vocale non supportée—utilise Chrome.');
-    return;
+    alert('Reconnaissance vocale non supportée—utilise Chrome.')
+    return
   }
 
-  const r = new webkitSpeechRecognition();
-  recognition.value = r;
-  r.continuous = false;
-  r.interimResults = true;
-  r.lang = 'fr-FR';
+  const r = new webkitSpeechRecognition()
+  recognition.value = r
+  r.continuous = false
+  r.interimResults = true
+  r.lang = 'fr-FR'
 
-  r.onspeechstart = () => triggerUserSpeaking();
-  r.onspeechend = () => scheduleUserSilence();
-  r.onsoundend = () => scheduleUserSilence();
-  r.onaudio = () => scheduleUserSilence();
-
-  function triggerUserSpeaking() {
-    isUserSpeaking.value = true;
-    if (userSilenceTimeout) clearTimeout(userSilenceTimeout);
+  r.onspeechstart = () => {
+    isUserSpeaking.value = true
+    if (userSilenceTimeout) clearTimeout(userSilenceTimeout)
   }
+  r.onspeechend = () => scheduleUserSilence()
+  r.onsoundend = () => scheduleUserSilence()
 
   function scheduleUserSilence() {
-    if (userSilenceTimeout) clearTimeout(userSilenceTimeout);
+    if (userSilenceTimeout) clearTimeout(userSilenceTimeout)
     userSilenceTimeout = setTimeout(() => {
-      isUserSpeaking.value = false;
-    }, 50);
+      isUserSpeaking.value = false
+    }, 1800)
   }
-r.onresult = async (ev) => {
-  const last = ev.results[ev.results.length - 1];
-  if (!last.isFinal) return;
 
-  const text = last[0].transcript.trim();
-  messages.value.push({ from: 'user', text, time: timestamp() });
+  r.onresult = async (ev) => {
+    const last = ev.results[ev.results.length - 1]
+    if (!last.isFinal) return
 
-  recognition.value.stop();            
-  isListeningAllowed.value = false;
-  isUserSpeaking.value = false;
-  isIaSpeaking.value = true;
+    const text = last[0].transcript.trim()
 
-  try {
-    const resp = await fetch('http://localhost:8000/api/v1/simulation/simulate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_input: text })
-    });
+    // Ajoute message dans le store (messages + conversationHistory)
+    store.addMessage({ from: 'user', text, time: timestamp() })
 
-    const { response,insight_text  } = await resp.json();
-    insightAdvice.value = insight_text?.advice ?? '';
+    recognition.value.stop()
+    isListeningAllowed.value = false
+    isUserSpeaking.value = false
+    isIaSpeaking.value = true
 
-    setTimeout(async () => {
-      messages.value.push({ from: 'ia', text: response, time: timestamp() });
-
-      // Tu peux décommenter si tu veux la voix
-      // await textToSpeech(response); 
+    try {
+      const resp = await fetch('http://localhost:8000/api/v1/simulation/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_input: text,
+          role: store.selections[3],
+          secteur: store.selections[2],
+        }),
+      })
+      const { response, insight_text } = await resp.json()
+      insightAdvice.value = insight_text?.advice ?? ''
 
       setTimeout(() => {
-        isIaSpeaking.value = false;
-        isListeningAllowed.value = true;
+        store.addMessage({ from: 'ia', text: response, time: timestamp() })
 
-        if (isMicOn.value) {
-          recognition.value.start(); // ✅ redémarre ici
-        }
-      }, 2000); // Durée supposée de la parole de l’IA
-
-    }, 1000); // délai avant que l'IA réponde
-
-  } catch (e) {
-    console.error(e);
-    messages.value.push({ from: 'ia', text: 'Erreur serveur', time: timestamp() });
-
-    // fail-safe
-    isIaSpeaking.value = false;
-    isListeningAllowed.value = true;
-    if (isMicOn.value) recognition.value.start();
+        setTimeout(() => {
+          isIaSpeaking.value = false
+          isListeningAllowed.value = true
+          if (isMicOn.value) recognition.value.start()
+        }, 2000)
+      }, 1000)
+    } catch (e) {
+      console.error(e)
+      store.addMessage({ from: 'ia', text: 'Erreur serveur', time: timestamp() })
+      isIaSpeaking.value = false
+      isListeningAllowed.value = true
+      if (isMicOn.value) recognition.value.start()
+    }
   }
-};
 
-  r.onerror = (e) => console.error('Mic error', e.error);
+  r.onerror = (e) => console.error('Mic error', e.error)
   r.onend = () => {
     if (isMicOn.value && isListeningAllowed.value) {
-      console.log('🔁 On redémarre la reco');
-      recognition.value.start();
+      console.log('🔁 Restart recognition')
+      recognition.value.start()
     }
-  };
+  }
 
-  r.start();
-});
+  recognition.value.start()
+})
 
 function toggleMic() {
-  if (!recognition.value) return;
-  isMicOn.value = !isMicOn.value;
+  if (!recognition.value) return
+  isMicOn.value = !isMicOn.value
   if (isMicOn.value) {
-    recognition.value.start();
+    recognition.value.start()
   } else {
-    recognition.value.stop();
-    isUserSpeaking.value = false;
-    isIaSpeaking.value = false;
-    clearTimeout(userSilenceTimeout);
-    clearTimeout(iaSilenceTimeout);
+    recognition.value.stop()
+    isUserSpeaking.value = false
+    isIaSpeaking.value = false
+    clearTimeout(userSilenceTimeout)
   }
 }
 
-function timestamp() {
-  return new Date().toLocaleTimeString().slice(0, 5);
+function handleNavigate(viewName) {
+  console.log('handleNavigate reçu dans SimulationSales:', viewName)
+  emit('navigate', viewName)
 }
 </script>
 
@@ -176,7 +176,7 @@ function timestamp() {
 .sim-root {
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 2px 16px 0 rgba(60, 72, 88, 0.08);
+  box-shadow: 0 2px 16px rgba(60, 72, 88, 0.08);
   display: flex;
   flex-direction: column;
   min-height: 78.5vh;

@@ -1,5 +1,6 @@
 <template>
   <div class="loading-simu" v-if="!finished">
+    <!-- La barre de chargement -->
     <div class="simu-header">
       <h2>Configuration reçue, agent.</h2>
     </div>
@@ -36,16 +37,23 @@
       </div>
     </div>
   </div>
- <SimulationSales v-else />
- 
+
+    <SimulationSales
+      v-else-if="selected === 'simulation-sales'"
+      @navigate="handleNavigate"
+    />
+
+  <ScoreSimulation v-else-if="selected === 'score-simulation'" />
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import SimulationSales from './SimulationSales.vue'
+import ScoreSimulation from './ScoreSimulation.vue'
 
 const percent = ref(0)
 const finished = ref(false)
+const selected = ref('simulation-sales')  // vue initiale après chargement
 const circumference = 2 * Math.PI * 80
 
 onMounted(() => {
@@ -62,6 +70,11 @@ onMounted(() => {
     }
   }, 30)
 })
+
+function handleNavigate(page) {
+  console.log('handleNavigate reçu dans homeView:', page)
+  selected.value = page
+}
 </script>
 
 <style scoped>

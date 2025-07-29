@@ -17,7 +17,7 @@
         class="insight-item"
         @click="openInsight(insight)"
       >
-        {{ insight.length > 100 ? insight.slice(0, 100) + '...' : insight }}
+       {{ insight }}
       </div>
     </div>
 
@@ -44,9 +44,13 @@
 import { ref, watch, nextTick } from 'vue';
 import { BrainCircuit } from 'lucide-vue-next';
 
+
 const insightListRef = ref(null);
 const showInsight = ref(true);
 const selectedInsight = ref(null); // Insight sélectionné
+
+
+
 
 const props = defineProps({
   advice: String,
@@ -55,16 +59,6 @@ const props = defineProps({
 });
 
  const insights = ref([
-  "Proposes une demo qui met en avant les fonctionnalités clés , et les avantages du produit. Et ensuite, propose un essai gratuit ou une démo personnalisée. afin de permettre au client de tester le produit avant de prendre une décision. et de répondre à ses questions. pour chaque génération de insight, on ajoute un nouveau conseil à la liste ",
-  "Demandes si...",
-  "Hupper > iop ?",
-   "Hupper > iop ?",
-    "Hupper > iop ?",
-     "Hupper > iop ?",
-      "Hupper > iop ?",
-       "Hupper > iop ?",
-        "Hupper > iop ?",
-         "Hupper > iop ?",
 ]);
 
 watch(() => props.advice, async (newAdvice) => {
@@ -84,21 +78,11 @@ function openInsight(insight) {
 }
 
 
-// Liste dynamique des conseils affichés
 
 
 // Etat loading pour la requête
 const loading = ref(false);
 
-// Exemple d'historique de conversation à envoyer (à adapter avec ta vraie data)
-const conversationHistory = [
-  { role: "client", content: "Bonjour, je regarde vos produits mais j’ai des doutes sur le prix." },
-  { role: "sales", content: "Bonjour, quels sont vos besoins exactement ?" },
-  { role: "client", content: "Le prix me semble un peu élevé, avez-vous des remises ?" },
-  { role: "sales", content: "Nous avons quelques promotions ce mois-ci, je peux vous en parler." }
-];
-
-// Fonction qui envoie la requête et ajoute la réponse aux insights
 
 </script>
 
@@ -144,22 +128,27 @@ const conversationHistory = [
 .insight-item {
   background: #fff;
   border-radius: 25px;
-  padding: 0.7rem 1rem;
-  padding-bottom : 1rem;
-  font-size: 1.05rem;
+  padding: 0.3rem 1rem;
+  font-size: 0.95rem;
   box-shadow: 0 1px 2px 0 rgba(60, 72, 88, 0.04);
   border: 2px solid #f2f2f2;
-  min-height: 40px;
-  display: flex;
-  align-items: center;
+  cursor: pointer;
+  user-select: none;
 
   display: -webkit-box;
-  -webkit-line-clamp: 2;       /* nombre de lignes max */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  word-break: break-word;
 
+  word-break: break-word;
+  max-height: 3.0em; /* contrôle strict : 2 lignes */
+  line-height: 1.6em;
+  transition: transform 0.2s ease;
+}
+
+.insight-item:hover {
+  transform: translateY(-4px);
 }
 
 .toggle-switch {
