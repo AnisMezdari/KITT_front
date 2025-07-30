@@ -88,6 +88,9 @@ watch(
 
       if (data && data.score_analysis && typeof data.score_analysis === 'object') {
         analysis.value = data.score_analysis
+
+        // Ici : reset du store APRES réception et traitement OK de la réponse
+        store.resetHistory()  // ou resetMessages(), selon ce que tu veux vider
       } else {
         console.warn('Réponse API sans score_analysis:', data)
       }

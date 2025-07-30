@@ -38,6 +38,7 @@ const isIaSpeaking = ref(false)
 let userSilenceTimeout = null
 const isListeningAllowed = ref(true)
 const insightAdvice = ref('')
+const sessionId = ref(null) // <-- session_id stocké ici
 
 function timestamp() {
   return new Date().toLocaleTimeString().slice(0, 5)
@@ -87,6 +88,7 @@ onMounted(() => {
     isUserSpeaking.value = true
     if (userSilenceTimeout) clearTimeout(userSilenceTimeout)
   }
+
   r.onspeechend = () => scheduleUserSilence()
   r.onsoundend = () => scheduleUserSilence()
 
@@ -103,7 +105,6 @@ onMounted(() => {
 
     const text = last[0].transcript.trim()
 
-    // Ajoute message dans le store (messages + conversationHistory)
     store.addMessage({ from: 'user', text, time: timestamp() })
 
     recognition.value.stop()
@@ -119,9 +120,17 @@ onMounted(() => {
           user_input: text,
           role: store.selections[3],
           secteur: store.selections[2],
+          session_id: sessionId.value, // Ajout du session_id si disponible
         }),
       })
-      const { response, insight_text } = await resp.json()
+
+      const { response, insight_text, session_id } = await resp.json()
+
+      // Récupère le session_id si c’est la première fois
+      if (!sessionId.value && session_id) {
+        sessionId.value = session_id
+      }
+
       insightAdvice.value = insight_text?.advice ?? ''
 
       setTimeout(() => {
@@ -170,6 +179,13 @@ function handleNavigate(viewName) {
   console.log('handleNavigate reçu dans SimulationSales:', viewName)
   emit('navigate', viewName)
 }
+
+function endSession() {
+  sessionId.value = null
+  store.resetMessages()  // <- si tu veux aussi vider les messages (optionnel)
+  console.log('Session réinitialisée')
+}
+
 </script>
 
 <style scoped>

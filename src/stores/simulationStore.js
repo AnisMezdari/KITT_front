@@ -20,6 +20,11 @@ export const useSimulationStore = defineStore('simulation', () => {
     conversationHistory.value = []
   }
 
+  function resetMessages() {
+    messages.value = []
+    conversationHistory.value = []
+  }
+
   return {
     selections,
     saveSelection,
@@ -27,5 +32,6 @@ export const useSimulationStore = defineStore('simulation', () => {
     conversationHistory,
     addMessage,
     resetHistory,
+    resetMessages
   }
 })

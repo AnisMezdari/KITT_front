@@ -25,15 +25,16 @@ defineProps({
   isMicOn: Boolean,
 })
 
-const emit = defineEmits(['toggleMic', 'navigate'])
+const emit = defineEmits(['toggleMic', 'navigate', 'end-session'])
 const router = useRouter()
 
 function toggleMic() {
   emit('toggleMic')
 }
 
+
 function navigateToScore() {
-   router.push({ name: 'score' })
+  router.push({ name: 'score' })
 }
 </script>
 

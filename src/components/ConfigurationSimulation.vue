@@ -97,7 +97,7 @@ const stepData = computed(() => {
       <div class="progress" :style="{ width: stepData.progress }"></div>
     </div>
 
-    <div class="simu-body" :style="{ backgroundImage: `url(${bgImage})` }">
+     <div class="simu-body" :style="{ backgroundImage: `url(${bgImage})` }">
       <div class="question">
         <div class="question-title">
           <strong>{{ stepData.title }}</strong>
